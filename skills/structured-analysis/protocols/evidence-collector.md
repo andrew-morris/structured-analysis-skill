@@ -147,25 +147,14 @@ After all background subagents complete:
 
 ### Tool Permissions
 
-For OSINT to work, the user must whitelist the relevant tools. These permissions are inherited by foreground Task subagents (Step 3a). Add the following to `.claude/settings.local.json`:
+For OSINT to work without permission prompts, the user must whitelist the relevant tools. These permissions are inherited by foreground Task subagents (Step 3a). Add the following to `.claude/settings.local.json`:
 
 ```json
 {
   "permissions": {
     "allow": [
       "mcp__firecrawl__firecrawl_search",
-      "mcp__firecrawl__firecrawl_scrape"
-    ]
-  }
-}
-```
-
-Or, if using WebSearch/WebFetch as fallback:
-
-```json
-{
-  "permissions": {
-    "allow": [
+      "mcp__firecrawl__firecrawl_scrape",
       "WebSearch",
       "WebFetch"
     ]
@@ -173,7 +162,7 @@ Or, if using WebSearch/WebFetch as fallback:
 }
 ```
 
-See the project README for full setup instructions.
+Whitelist both Firecrawl (primary) and WebSearch/WebFetch (fallback). Without these permissions, every web request will prompt the user for approval. See the project README for full setup instructions.
 
 ---
 
