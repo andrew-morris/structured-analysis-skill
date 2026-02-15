@@ -10,7 +10,7 @@
 |-------|-------|
 | **Created** | {{CREATED_TIMESTAMP}} |
 | **Last Updated** | {{UPDATED_TIMESTAMP}} |
-| **Mode** | {{ADAPTIVE/DIRECT/GUIDED/LEAN}} |
+| **Mode** | {{ADAPTIVE/DIRECT/GUIDED/LEAN/COMPREHENSIVE}} |
 | **Status** | {{IN_PROGRESS/COMPLETE}} |
 | **Iteration** | {{1}} |
 

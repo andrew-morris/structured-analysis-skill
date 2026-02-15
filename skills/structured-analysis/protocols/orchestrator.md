@@ -16,10 +16,20 @@ Parse the skill invocation arguments:
 | `--resume <id>` | **Resume** — continue or update existing analysis |
 | `--iterate <id>` | **Iterate** — re-run with artifact versioning and evidence delta |
 | `--iterate <id> <technique>` | **Iterate (scoped)** — re-run specific technique(s) only |
-| `--lean` | **Lean** — abbreviated technique set |
+| `--lean` | **Lean** — Problem Restatement + KAC + Inconsistencies only (overrides rubric) |
+| `--comprehensive` | **Comprehensive** — full 14-question rubric, no technique cap, unlocks adversarial + deception checks |
 | `--no-osint` | Flag — disable web research |
 
 Flags combine with modes: `--guided --no-osint` is valid.
+
+### Mode Flag Conflict Resolution
+
+| Combination | Resolution |
+|---|---|
+| `--lean` + `--comprehensive` | ERROR: conflicting effort levels — prompt user to choose |
+| `--lean` + `--guided` | Lean overrides technique selection; guided phases still execute |
+| `--comprehensive` + `--guided` | Both apply: full rubric + phased execution |
+| `--no-osint` + any mode | OSINT disabled; all modes respect this |
 
 ---
 
@@ -39,8 +49,12 @@ Flags combine with modes: `--guided --no-osint` is valid.
 | `premortem` | `protocols/techniques/premortem.md` | `templates/techniques/premortem.md` | Challenge |
 | `counterfactual` | `protocols/techniques/counterfactual-reasoning.md` | `templates/techniques/counterfactual.md` | Foresight |
 | `narratives` | `protocols/techniques/contrasting-narratives.md` | `templates/techniques/contrasting-narratives.md` | Foresight |
+| `devils-advocacy` | `protocols/techniques/devils-advocacy.md` | `templates/techniques/devils-advocacy.md` | Challenge |
+| `red-hat` | `protocols/techniques/red-hat-analysis.md` | `templates/techniques/red-hat-analysis.md` | Challenge |
 | `bowtie` | `protocols/techniques/bowtie-analysis.md` | `templates/techniques/bowtie.md` | Decision Support |
 | `opportunities` | `protocols/techniques/opportunities-incubator.md` | `templates/techniques/opportunities.md` | Decision Support |
+| `alt-futures` | `protocols/techniques/alternative-futures.md` | `templates/techniques/alternative-futures.md` | Foresight |
+| `deception` | `protocols/techniques/deception-detection.md` | `templates/techniques/deception-detection.md` | Diagnostic |
 
 All paths are relative to the skill directory (`skills/structured-analysis/`).
 
@@ -85,28 +99,69 @@ Map the conversation context to the appropriate phase:
 | Need to model futures | Foresight → Counterfactual, Contrasting Narratives |
 | Need to decide between options | Decision Support → Bowtie, Opportunities |
 
-### Step 3 — Challenge Check (12-Question Rubric)
+### Step 3 — Challenge Check (14-Question Rubric)
 
-| Condition | Technique |
-|-----------|-----------|
-| Large data volume to sort? | Structured Brainstorming |
-| Premises not explicit? | Key Assumptions Check |
-| Multiple exclusive explanations? | ACH (or Inconsistencies Finder if lean) |
-| High uncertainty, many variables? | Cross-Impact Matrix |
-| Fear of surprise? | What If? Analysis |
-| Groupthink or dominant mindset? | Premortem + Self-Critique |
-| Need to find opportunities? | Opportunities Incubator |
-| Competing options to evaluate? | Bowtie Analysis |
-| Competing narratives in play? | Contrasting Narratives |
-| Need to understand causal dynamics? | Counterfactual Reasoning |
-| Need to track over time? | Include Monitoring Plan generation |
+Questions 1–11 are always active. Questions 12–14 activate in `--comprehensive` mode.
 
-### Step 4 — Effort Check
+| # | Condition | Primary Technique | Substitutes | Complements | Threshold |
+|---|-----------|-------------------|-------------|-------------|-----------|
+| 1 | Large data volume to sort? | Structured Brainstorming | — | feeds → KAC, ACH | — |
+| 2 | Premises not explicit? | Key Assumptions Check | — | feeds → ACH, Devil's Advocacy | — |
+| 3 | Multiple exclusive explanations? | ACH | Inconsistencies Finder (≤2 hyp) | ← KAC; → Deception Detection | ≤2 hyp → Inconsistencies; 3+ → ACH |
+| 4 | High uncertainty, many variables? | Cross-Impact Matrix | — | + Alternative Futures (if forecasting) | — |
+| 5 | Fear of surprise? | What If? Analysis | — | + Premortem (if existing judgment) | — |
+| 6 | Groupthink or dominant mindset? | Premortem + Self-Critique | — | + Devil's Advocacy (stronger challenge) | — |
+| 7 | Need to find opportunities? | Opportunities Incubator | — | — | — |
+| 8 | Competing options to evaluate? | Bowtie Analysis | — | — | — |
+| 9 | Competing narratives in play? | Contrasting Narratives | — | + Deception Detection (if adversarial) | — |
+| 10 | Need to understand causal dynamics? | Counterfactual Reasoning | — | — | — |
+| 11 | Need to track over time? | Include Monitoring Plan | — | — | — |
+| 12 | Multiple plausible futures? ★ | Alternative Futures | — | feeds → Monitoring Plan | — |
+| 13 | Need to model adversary reaction? ★ | Red Hat Analysis | — | + Devil's Advocacy | — |
+| 14 | Risk of intentional deception? ★ | Deception Detection | — | revises → ACH/Inconsistencies | — |
 
-- If `--lean` flag: Use ONLY Problem Restatement + KAC Quick + Inconsistencies Finder
-- Default: Full technique set as selected by rubric
-- Present recommendation: "Based on the problem, I recommend: [technique list with rationale]. Shall I proceed or adjust?"
-- Wait for user confirmation before executing
+★ = Comprehensive mode only
+
+**Reading the interaction columns:**
+- **Substitutes**: Use INSTEAD of primary when threshold applies (e.g., Inconsistencies Finder replaces ACH for ≤2 hypotheses)
+- **Complements**: Use IN ADDITION to primary (e.g., Devil's Advocacy adds to Premortem when both Q2+Q6 match). Complements are recommendations, not automatic additions.
+- **feeds →**: Output of this technique is input to the next (prerequisite relationship)
+- **+ technique**: Consider running alongside (reinforcing relationship)
+- **revises →**: Output may require re-running a prior technique
+
+### Step 4 — Effort Check & Technique Cap
+
+**Lean Mode** (`--lean`):
+- Use ONLY Problem Restatement + KAC Quick + Inconsistencies Finder
+- Overrides all rubric selections — no exceptions
+
+**Default Mode** (no effort flag):
+- Questions 1–11 active; max 5 techniques
+- Prioritization when >5 match:
+  1. Phase alignment (prefer techniques matching Stage Check result)
+  2. Diagnostic before Challenge (test assumptions before stress-testing)
+  3. Essential 8 before Extended techniques
+- If >5 match, inform user: "I identified [N] matching techniques. Recommending [5 prioritized]. Use --comprehensive to run all."
+
+**Comprehensive Mode** (`--comprehensive`):
+- Full 14-question rubric (adds Q12–14: adversary reaction, deception risk, alternative futures)
+- No technique cap — all matching techniques execute
+- Complements from interaction model are promoted to selections (not just suggestions)
+
+Present recommendation with rationale. Wait for user confirmation.
+
+### No-Match Fallback
+
+If zero Challenge Check questions match (or user requests minimal structure):
+
+1. Problem Restatement (Launch)
+2. Key Assumptions Check (Diagnostic)
+3. Evidence collection
+4. Inconsistencies Finder (≤2 hypotheses) or ACH (3+)
+5. Premortem (Challenge)
+6. Report with low-confidence flag
+
+This ensures minimum viable rigor for edge cases.
 
 ---
 
