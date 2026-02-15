@@ -228,7 +228,24 @@ Every claim traces to a cited source. Every judgment traces to technique output.
 
 ### Iteration
 
-When self-critique identifies weaknesses (missing hypotheses, evidence bias, untested assumptions), iterate without losing the reasoning trail:
+When self-critique identifies weaknesses (missing hypotheses, evidence bias, untested assumptions), the skill automatically maps flags to specific iteration suggestions with ready-to-run commands:
+
+```
+## Iteration Suggestions
+
+Self-critique identified 2 actionable items:
+
+1. **Unstated premises found**: Three assumptions identified in ACH matrix lack evidence
+   → Re-run: kac | Evidence focus: Collect evidence testing the flagged assumptions
+
+2. **Missing perspectives**: No technical operator viewpoint represented
+   → Re-run: narratives | Evidence focus: Collect evidence from the missing viewpoint
+
+Suggested command:
+/analyze --iterate 2026-02-15-cybersecurity-assessment kac narratives
+```
+
+Run the suggested command (or modify it) to iterate without losing the reasoning trail:
 
 ```
 /analyze --iterate 2026-02-15-cybersecurity-assessment ach

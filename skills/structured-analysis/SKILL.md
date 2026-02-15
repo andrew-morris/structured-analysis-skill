@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: Conduct structured analysis on any problem using CIA/IC analytic techniques — assess competing hypotheses, challenge assumptions, stress-test judgments, and produce defensible evidence-based assessments with full citations. Supports 14 techniques including ACH, Key Assumptions Check, What-If, Premortem, Cross-Impact Matrix, and Contrasting Narratives.
+description: Conduct structured analysis on any problem using CIA/IC analytic techniques — assess competing hypotheses, challenge assumptions, stress-test judgments, and produce defensible evidence-based assessments with full citations. Supports 18 techniques including ACH, Key Assumptions Check, What-If, Premortem, Cross-Impact Matrix, Contrasting Narratives, Devil's Advocacy, Red Hat Analysis, Alternative Futures, and Deception Detection.
 argument-hint: "[technique or flags, e.g. ach, --guided, --no-osint]"
 allowed-tools: Task, Read, Write, Glob, Grep, Bash, WebSearch, WebFetch, mcp__firecrawl__firecrawl_search, mcp__firecrawl__firecrawl_scrape
 ---
@@ -19,10 +19,11 @@ Apply CIA/IC Structured Analytic Techniques to produce defensible, evidence-base
 /analyze --iterate <analysis-id>                → Re-run full analysis with new evidence
 /analyze --iterate <analysis-id> <technique>    → Re-run specific technique(s)
 /analyze --lean                   → Lean mode (abbreviated technique set)
+/analyze --comprehensive          → Comprehensive mode (full rubric, adversarial + deception checks)
 /analyze --no-osint               → Disable web research
 ```
 
-Techniques: `customer-checklist`, `issue-redefinition`, `restatement`, `brainstorm`, `kac`, `ach`, `inconsistencies`, `cross-impact`, `what-if`, `premortem`, `counterfactual`, `narratives`, `bowtie`, `opportunities`
+Techniques: `customer-checklist`, `issue-redefinition`, `restatement`, `brainstorm`, `kac`, `ach`, `inconsistencies`, `cross-impact`, `what-if`, `premortem`, `counterfactual`, `narratives`, `bowtie`, `opportunities`, `devils-advocacy`, `red-hat`, `alt-futures`, `deception`
 
 Flags combine: `/analyze --guided --no-osint` is valid.
 
@@ -78,6 +79,7 @@ If no conversation context exists and no arguments were provided, proceed direct
 - **Layer 1** (after each technique, silent): Protocol compliance check — all steps completed? All template sections filled? No unfilled `{{PLACEHOLDER}}` tokens?
 - **Layer 2** (before report, silent): Analytical self-critique — assumption audit, evidence balance, confidence calibration, alternative check, missing voices
 - **Layer 3** (before finalization): Human review gate — present summary, incorporate feedback
+- **Critique-to-Iteration Bridge** (after results): Actionable flags from Layer 1 and Layer 2 are automatically mapped to specific technique re-runs and evidence collection focuses, presented as ready-to-run `/analyze --iterate` commands. Only fires when actionable flags exist.
 
 ## Citation Requirement
 
