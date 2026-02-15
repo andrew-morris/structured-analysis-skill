@@ -93,7 +93,7 @@ The skill will:
 4. Self-correct through three validation layers
 5. Present findings with a human review gate before finalization
 
-Output is a structured report with cited key judgments, confidence levels, a monitoring plan, and full evidence registry.
+Output is a structured report with cited key judgments, confidence levels, a monitoring plan, and full evidence registry. See [`example_analysis/`](example_analysis/) for a complete sample output.
 
 ## Using Local Evidence
 
