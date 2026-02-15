@@ -18,22 +18,206 @@ Collect in order. Each tier adds breadth.
 - Tag each item: `[filename:line_range]`
 
 ### Tier 3: OSINT (skip if `--no-osint` flag is set)
-- Spawn **3 parallel Task agents** using the Task tool:
 
-**Agent 1 — Background & Context:**
-> Research background and context for: {{PROBLEM_SUMMARY}}. Search for authoritative sources, data, expert analysis. Use Firecrawl MCP if available, otherwise WebSearch and WebFetch. Return findings with full source URLs and retrieval dates.
+> **Important — MCP tool availability in sub-agents**:
+> - **Background sub-agents** (`run_in_background: true`): MCP tools are **not available**. This is a Claude Code architectural constraint.
+> - **Foreground sub-agents**: MCP tools **are** inherited from the parent conversation and will work, but they block the main conversation while running.
 
-**Agent 2 — Contrarian & Critical:**
-> Research contrarian and critical perspectives on: {{PROBLEM_SUMMARY}}. Specifically look for: counterarguments, failures, risks, critics' views, alternative explanations. Use Firecrawl MCP if available, otherwise WebSearch and WebFetch. Return findings with full source URLs and retrieval dates.
+Collect OSINT via a three-step pipeline that keeps raw web content out of the main context window. All raw article text is written to disk by subagents; only compact summaries flow back.
 
-**Agent 3 — Recent Developments:**
-> Research recent developments (last 6 months) related to: {{PROBLEM_SUMMARY}}. Look for: new data, policy changes, market shifts, emerging trends, breaking news. Use Firecrawl MCP if available, otherwise WebSearch and WebFetch. Return findings with full source URLs and retrieval dates.
+#### Step 3a — Raw Collection (Foreground Task Subagents)
 
-### Firecrawl MCP Integration
-- Check if Firecrawl MCP server is available in the current session
-- If available: Use Firecrawl for deep page scraping (full article content, JavaScript-rendered pages)
-- If not available: Fall back to WebSearch for discovery + WebFetch for content extraction
-- Always record which method was used in the evidence registry
+Spawn **3 foreground Task subagents sequentially** (one per search theme). Each subagent inherits MCP tools from the parent and can use Firecrawl or WebSearch/WebFetch.
+
+For each theme, invoke the Task tool with `subagent_type: "general-purpose"` and the following prompt template (substitute `{{THEME_NAME}}`, `{{THEME_NUMBER}}`, `{{SEARCH_INSTRUCTIONS}}`, and `{{PROBLEM_SUMMARY}}`):
+
+```
+You are an OSINT evidence collector. Your task:
+
+1. Search for: {{SEARCH_INSTRUCTIONS}} related to: {{PROBLEM_SUMMARY}}
+2. For each relevant result (aim for {{SOURCE_COUNT}} sources):
+   - Use firecrawl_search for discovery, then firecrawl_scrape for full content
+   - If Firecrawl is unavailable, use WebSearch for discovery + WebFetch for content
+   - If ALL web tools are denied, write a file noting the limitation and return
+3. Write ALL raw scraped content to: analyses/{{ANALYSIS_ID}}/working/osint-raw/theme-{{THEME_NUMBER}}-{{THEME_SLUG}}.md
+
+Use this file format:
+# OSINT Raw: Theme {{THEME_NUMBER}} — {{THEME_NAME}}
+> Query: [your search query]
+> Timestamp: [ISO timestamp]
+> Tool: [firecrawl_search + firecrawl_scrape | WebSearch + WebFetch]
+
+---
+
+## Source 1
+- **URL**: [url]
+- **Title**: [title]
+- **Retrieved**: YYYY-MM-DD
+
+### Raw Content
+[Full scraped article content]
+
+---
+
+(Repeat for each source)
+
+4. Return ONLY this summary (nothing else):
+   Sources found: [N]
+   URLs: [url1], [url2], ...
+   Errors: [any errors or "none"]
+```
+
+**Theme prompts** (substitute into `{{SEARCH_INSTRUCTIONS}}` and `{{SOURCE_COUNT}}`):
+
+| Theme | `{{THEME_NAME}}` | `{{THEME_SLUG}}` | `{{SEARCH_INSTRUCTIONS}}` | `{{SOURCE_COUNT}}` |
+|-------|-------------------|-------------------|---------------------------|---------------------|
+| 1 | Background & Context | background | Authoritative sources, data, and expert analysis on | 3-5 |
+| 2 | Contrarian & Critical | contrarian | Counterarguments, failures, risks, critics' views, and alternative explanations for | 2-3 |
+| 3 | Recent Developments | recent | Developments from the last 6 months — new data, policy changes, market shifts, emerging trends, breaking news about | 2-3 |
+
+#### Step 3b — Evidence Extraction (Background Subagents)
+
+After all 3 raw files are on disk, spawn **3 background Task subagents in parallel** (`run_in_background: true`). Each reads its raw file (no MCP tools needed) and extracts structured evidence.
+
+For each theme, invoke the Task tool with `subagent_type: "general-purpose"`, `run_in_background: true`, and this prompt template:
+
+```
+You are an evidence extraction processor. Your task:
+
+1. Read the raw OSINT file: analyses/{{ANALYSIS_ID}}/working/osint-raw/theme-{{THEME_NUMBER}}-{{THEME_SLUG}}.md
+2. For each source in the file, extract structured evidence items:
+   - One-sentence summary of key finding
+   - Key quotes (direct quotes from the source)
+   - Quality ratings using this scale:
+     Source Reliability: High (established, verified track record) | Medium (known but unverified) | Low (unknown or biased)
+     Information Credibility: High (corroborated, consistent) | Medium (plausible, partial) | Low (uncorroborated, contradictory)
+     Diagnostic Value: High (contradicts hypotheses) | Medium (supports some) | Low (consistent with most) | Zero (consistent with ALL)
+3. Write structured output to: analyses/{{ANALYSIS_ID}}/working/osint-processed/theme-{{THEME_NUMBER}}-evidence.md
+
+Use this file format:
+# Processed Evidence: Theme {{THEME_NUMBER}} — {{THEME_NAME}}
+
+## E-T{{THEME_NUMBER}}-01
+- **Source**: [Publication Name]
+- **Type**: OSINT
+- **Summary**: [One-sentence summary]
+- **Key Quotes**: "[Direct quote]"
+- **Reliability**: [High | Medium | Low]
+- **Credibility**: [High | Medium | Low]
+- **Diagnostic Value**: [High | Medium | Low | Zero]
+- **Citation**: [Source Title](URL) — Retrieved: YYYY-MM-DD
+
+(Repeat for each evidence item)
+
+## Theme Summary
+- Items: [count]
+- Reliability distribution: [N] High, [N] Medium, [N] Low
+- Diagnostic value distribution: [N] High, [N] Medium, [N] Low, [N] Zero
+
+4. Return ONLY this summary:
+   Items extracted: [N]
+   Reliability: [N] High, [N] Medium, [N] Low
+```
+
+#### Step 3c — Registry Integration (Main Context)
+
+After all background subagents complete:
+
+1. Read the 3 processed evidence files from `working/osint-processed/`
+2. Merge with Tier 1 (conversation) and Tier 2 (local files) evidence
+3. Assign sequential E-IDs (E01, E02, ...) across all tiers
+4. Record which collection method was used (Firecrawl or WebSearch/WebFetch)
+5. Run the **Evidence Sufficiency Gate** (see below)
+6. Write the final `evidence-registry.md`
+
+#### Error Handling
+
+- **Firecrawl unavailable**: Step 3a subagents fall back to WebSearch + WebFetch automatically
+- **All web tools denied**: Step 3a subagent writes an empty raw file with limitation note; proceed with Tier 1 + Tier 2 only
+- **Partial scrape failure**: Step 3b processes whatever sources are present in the raw file
+- **Sufficiency Gate retry**: Spawn additional Step 3a subagents with broadened search terms; prior raw files remain on disk
+
+### Tool Permissions
+
+For OSINT to work, the user must whitelist the relevant tools. These permissions are inherited by foreground Task subagents (Step 3a). Add the following to `.claude/settings.local.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__firecrawl__firecrawl_search",
+      "mcp__firecrawl__firecrawl_scrape"
+    ]
+  }
+}
+```
+
+Or, if using WebSearch/WebFetch as fallback:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch"
+    ]
+  }
+}
+```
+
+See the project README for full setup instructions.
+
+---
+
+## Evidence Sufficiency Gate
+
+After collecting evidence across all tiers, evaluate before proceeding to technique execution. This gate prevents analysis from running against an inadequate evidence base.
+
+### Hard Checks (HALT if failed)
+
+| Check | Threshold | Action on Failure |
+|-------|-----------|-------------------|
+| **Minimum count** | ≥5 items total (≥8 if adaptive mode with 4+ techniques) | Loop back: retry OSINT with broader search terms, try alternative tools, or surface to analyst with specific gap description |
+| **Quality floor** | <50% of items rated Low reliability | Halt and surface to analyst: "Evidence base is unreliable — {{N}} of {{TOTAL}} items are Low reliability. Recommend gathering higher-quality sources before proceeding." |
+
+### Soft Checks (WARN and proceed with flag)
+
+| Check | Threshold | Flag Text |
+|-------|-----------|-----------|
+| **Source diversity** | ≥2 distinct source types (e.g., government + journalism + think tank) | `⚠️ LOW SOURCE DIVERSITY: {{N}} source type(s) only. Risk of systematic bias.` |
+| **Tier coverage** | At least Tier 1 + one of Tier 2 or 3 populated | `⚠️ SINGLE-TIER EVIDENCE: Only {{TIER}} evidence collected. Consider gathering from additional tiers.` |
+| **Diagnostic coverage** | ≥1 item rated High diagnostic value | `⚠️ LOW DIAGNOSTIC POWER: No High-diagnostic evidence found. Evidence may not discriminate between hypotheses.` |
+| **Temporal recency** | ≥1 item from the last 6 months (if topic is current/evolving) | `⚠️ STALE EVIDENCE: No recent sources. Analysis may miss current developments.` |
+
+### Gate Logic
+
+```
+IF any hard check fails:
+    → Attempt one retry cycle (broaden search terms, try fallback tools)
+    → If still fails after retry: surface to analyst with specific gap description
+    → Analyst can override with explicit approval ("proceed with limited evidence")
+
+IF only soft checks fail:
+    → Log all flags in meta.md under Self-Correction > Layer 1 Flags
+    → Proceed to technique execution
+    → Flags are surfaced again in Layer 2 self-critique and Human Review Gate
+```
+
+### Sufficiency Report
+
+After the gate, report to the orchestrator:
+
+```
+## Evidence Sufficiency Assessment
+- **Total items**: {{COUNT}} (Hard check: {{PASS/FAIL}})
+- **Quality floor**: {{HIGH_COUNT}} High / {{MED_COUNT}} Medium / {{LOW_COUNT}} Low (Hard check: {{PASS/FAIL}})
+- **Source diversity**: {{TYPE_COUNT}} source types (Soft check: {{PASS/WARN}})
+- **Tier coverage**: Tier 1: {{T1}} / Tier 2: {{T2}} / Tier 3: {{T3}} (Soft check: {{PASS/WARN}})
+- **Diagnostic power**: {{HIGH_DIAG_COUNT}} High-diagnostic items (Soft check: {{PASS/WARN}})
+- **Temporal recency**: Most recent item from {{DATE}} (Soft check: {{PASS/WARN}})
+- **Gate result**: {{PROCEED / RETRY / HALT}}
+- **Active flags**: {{LIST_OF_FLAGS}}
+```
 
 ---
 

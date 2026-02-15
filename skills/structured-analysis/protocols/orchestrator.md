@@ -49,7 +49,10 @@ All paths are relative to the skill directory (`skills/structured-analysis/`).
 At the start of ANY analysis:
 
 1. Generate analysis ID: `YYYY-MM-DD-<slugified-problem-title>`
-2. Create directory: `analyses/{{ANALYSIS_ID}}/working/`
+2. Create directories:
+   - `analyses/{{ANALYSIS_ID}}/working/` — technique artifacts
+   - `analyses/{{ANALYSIS_ID}}/working/osint-raw/` — raw scraped content (Step 3a output)
+   - `analyses/{{ANALYSIS_ID}}/working/osint-processed/` — extracted evidence items (Step 3b output)
 3. Write initial `meta.md` using `templates/meta-template.md`
 4. Note the analysis directory path — all artifacts go here
 
@@ -112,9 +115,10 @@ Execute in order, each phase building on the previous:
 1. **Framing**: Customer Checklist → Issue Redefinition
 2. **Assumptions**: Key Assumptions Check
 3. **Evidence**: Read and execute `protocols/evidence-collector.md`
-4. **Core Analysis**: Use selection logic (Steps 2-3 above) to pick technique(s)
-5. **Stress Test**: Premortem + What If?
-6. **Report**: Read and execute `protocols/report-generator.md`
+4. **Evidence Gate**: Execute the Evidence Sufficiency Gate (defined in `protocols/evidence-collector.md`). If hard checks fail, retry or halt. If soft checks fail, log flags and proceed.
+5. **Core Analysis**: Use selection logic (Steps 2-3 above) to pick technique(s)
+6. **Stress Test**: Premortem + What If?
+7. **Report**: Read and execute `protocols/report-generator.md`
 
 ---
 
@@ -123,11 +127,12 @@ Execute in order, each phase building on the previous:
 1. Look up technique in the routing table
 2. Create analysis directory
 3. If OSINT not disabled, run evidence collector first
-4. Read the technique's protocol file
-5. Read the technique's template file
-6. Execute the protocol, writing the artifact using the template
-7. Present findings in conversation
-8. Offer: "Would you like me to continue with a full analysis, or is this technique sufficient?"
+4. Execute Evidence Sufficiency Gate; if hard checks fail, retry or surface to analyst before proceeding
+5. Read the technique's protocol file
+6. Read the technique's template file
+7. Execute the protocol, writing the artifact using the template
+8. Present findings in conversation
+9. Offer: "Would you like me to continue with a full analysis, or is this technique sufficient?"
 
 ---
 
@@ -136,6 +141,16 @@ Execute in order, each phase building on the previous:
 1. Read `analyses/<id>/meta.md`
 2. If analysis is **incomplete**: continue from last completed technique
 3. If analysis is **complete**: read `analyses/<id>/monitoring-plan.md`, run fresh OSINT against indicators, update indicator status column and review log
+
+---
+
+## Evidence Gate (All Modes)
+
+After evidence collection and before any technique execution, run the **Evidence Sufficiency Gate** defined in `protocols/evidence-collector.md`. This applies to Adaptive, Guided, and Direct modes.
+
+- If hard checks fail: retry evidence collection or surface to analyst
+- If soft checks fail: log flags in `meta.md` under Self-Correction > Layer 1 Flags, then proceed
+- The Evidence Sufficiency Report should be included in the orchestrator's handoff to each technique
 
 ---
 
