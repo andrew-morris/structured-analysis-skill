@@ -37,9 +37,9 @@ Flags combine with modes: `--guided --no-osint` is valid.
 
 | Invocation Name | Protocol File | Template File | Artifact | Phase |
 |---|---|---|---|---|
-| `customer-checklist` | `protocols/techniques/customer-checklist.md` | `templates/techniques/customer-checklist.md` | `customer-checklist.md` | Launch |
-| `issue-redefinition` | `protocols/techniques/issue-redefinition.md` | `templates/techniques/issue-redefinition.md` | `issue-redefinition.md` | Launch |
-| `restatement` | `protocols/techniques/problem-restatement.md` | `templates/techniques/problem-restatement.md` | `problem-restatement.md` | Launch |
+| `customer-checklist` | `protocols/techniques/customer-checklist.md` | `templates/techniques/customer-checklist.md` | `requirements.md` | Launch |
+| `issue-redefinition` | `protocols/techniques/issue-redefinition.md` | `templates/techniques/issue-redefinition.md` | `problem-framing.md` | Launch |
+| `restatement` | `protocols/techniques/problem-restatement.md` | `templates/techniques/problem-restatement.md` | `problem-framing.md` (appends) | Launch |
 | `brainstorm` | `protocols/techniques/structured-brainstorming.md` | `templates/techniques/brainstorm.md` | `brainstorm.md` | Exploration |
 | `kac` | `protocols/techniques/key-assumptions-check.md` | `templates/techniques/assumptions.md` | `assumptions.md` | Diagnostic |
 | `ach` | `protocols/techniques/ach.md` | `templates/techniques/ach-matrix.md` | `ach-matrix.md` | Diagnostic |
@@ -48,13 +48,13 @@ Flags combine with modes: `--guided --no-osint` is valid.
 | `what-if` | `protocols/techniques/what-if.md` | `templates/techniques/what-if.md` | `what-if.md` | Challenge |
 | `premortem` | `protocols/techniques/premortem.md` | `templates/techniques/premortem.md` | `premortem.md` | Challenge |
 | `counterfactual` | `protocols/techniques/counterfactual-reasoning.md` | `templates/techniques/counterfactual.md` | `counterfactual.md` | Foresight |
-| `narratives` | `protocols/techniques/contrasting-narratives.md` | `templates/techniques/contrasting-narratives.md` | `contrasting-narratives.md` | Foresight |
+| `narratives` | `protocols/techniques/contrasting-narratives.md` | `templates/techniques/contrasting-narratives.md` | `narratives.md` | Foresight |
 | `devils-advocacy` | `protocols/techniques/devils-advocacy.md` | `templates/techniques/devils-advocacy.md` | `devils-advocacy.md` | Challenge |
 | `red-hat` | `protocols/techniques/red-hat-analysis.md` | `templates/techniques/red-hat-analysis.md` | `red-hat-analysis.md` | Challenge |
 | `bowtie` | `protocols/techniques/bowtie-analysis.md` | `templates/techniques/bowtie.md` | `bowtie.md` | Decision Support |
 | `opportunities` | `protocols/techniques/opportunities-incubator.md` | `templates/techniques/opportunities.md` | `opportunities.md` | Decision Support |
-| `alt-futures` | `protocols/techniques/alternative-futures.md` | `templates/techniques/alternative-futures.md` | `alternative-futures.md` | Foresight |
-| `deception` | `protocols/techniques/deception-detection.md` | `templates/techniques/deception-detection.md` | `deception-detection.md` | Diagnostic |
+| `alt-futures` | `protocols/techniques/alternative-futures.md` | `templates/techniques/alternative-futures.md` | `alt-futures.md` | Foresight |
+| `deception` | `protocols/techniques/deception-detection.md` | `templates/techniques/deception-detection.md` | `deception.md` | Diagnostic |
 
 All paths are relative to the skill directory (`skills/structured-analysis/`).
 
@@ -101,6 +101,12 @@ Map the conversation context to the appropriate phase:
 
 ### Step 3 — Challenge Check (14-Question Rubric)
 
+The rubric operationalizes four selection dimensions from the library's decision framework:
+- **Uncertainty type**: Is the uncertainty factual, causal, or predictive? (drives Q2, Q3, Q4)
+- **Data volatility**: How fast is the information environment changing? (drives Q1, Q5, Q11)
+- **Bias susceptibility**: Which cognitive traps are most likely? (drives Q6, Q9, Q13, Q14)
+- **Analytic complexity**: How many interacting variables and actors? (drives Q4, Q8, Q10, Q12)
+
 Questions 1–11 are always active. Questions 12–14 activate in `--comprehensive` mode.
 
 | # | Condition | Primary Technique | Substitutes | Complements | Threshold |
@@ -132,7 +138,7 @@ Questions 1–11 are always active. Questions 12–14 activate in `--comprehensi
 ### Step 4 — Effort Check & Technique Cap
 
 **Lean Mode** (`--lean`):
-- Use ONLY Problem Restatement + KAC Quick + Inconsistencies Finder
+- Use ONLY Problem Restatement + KAC (abbreviated: limit to 5 most critical premises; still identify linchpins — the linchpin scan is fast and high-value) + Inconsistencies Finder
 - Overrides all rubric selections — no exceptions
 
 **Default Mode** (no effort flag):
@@ -181,7 +187,7 @@ Execute in order, each phase building on the previous:
 
 ## Direct Mode
 
-1. Look up technique in the routing table
+1. Look up technique in the routing table. If the technique name is not found, respond with: "Unknown technique '{{INPUT}}'. Valid techniques: `customer-checklist`, `issue-redefinition`, `restatement`, `brainstorm`, `kac`, `ach`, `inconsistencies`, `cross-impact`, `what-if`, `premortem`, `counterfactual`, `narratives`, `devils-advocacy`, `red-hat`, `bowtie`, `opportunities`, `alt-futures`, `deception`." — then stop.
 2. Create analysis directory
 3. If OSINT not disabled, run evidence collector first
 4. Execute Evidence Sufficiency Gate; if hard checks fail, retry or surface to analyst before proceeding
@@ -274,16 +280,18 @@ Techniques execute against the combined evidence base (prior + new).
 
 Assign each selected technique to a tier based on its input dependencies. Only include tiers that contain at least one selected technique.
 
-| Tier | Techniques | Dependencies | Dispatch |
-|------|-----------|-------------|----------|
-| 0 (Launch) | customer-checklist, issue-redefinition, restatement | Conversation context only | **In-context** (interactive, produce `requirements.md`) |
-| — | Evidence Collection | requirements.md | Existing subagent pipeline (unchanged) |
-| 1 | brainstorm, kac | requirements.md, evidence-registry.md | Background, parallel |
-| 2 | ach, cross-impact, inconsistencies | + assumptions.md, brainstorm.md | Background, parallel |
-| 3 | what-if, counterfactual, narratives, bowtie, opportunities, deception | + prior technique outputs | Background, parallel |
-| 4 | premortem, devils-advocacy, red-hat, alt-futures | ALL prior working/ artifacts | Background, parallel |
+| Tier | Techniques | Dependencies | Dispatch | Timeout |
+|------|-----------|-------------|----------|---------|
+| 0 (Launch) | customer-checklist, issue-redefinition, restatement | Conversation context only | **In-context** (interactive, produce `requirements.md`) | — |
+| — | Evidence Collection | requirements.md | Existing subagent pipeline (unchanged) | 10 min |
+| 1 | brainstorm, kac | requirements.md, evidence-registry.md | Background, parallel | 5 min |
+| 2 | ach, cross-impact, inconsistencies | + assumptions.md, brainstorm.md | Background, parallel | 5 min |
+| 3 | what-if, counterfactual, narratives, bowtie, opportunities, deception | + prior technique outputs | Background, parallel | 8 min |
+| 4 | premortem, devils-advocacy, red-hat, alt-futures | ALL prior working/ artifacts | Background, parallel | 8 min |
 
-Within each tier, techniques run in parallel (no intra-tier dependencies). The orchestrator waits for all subagents in tier N to complete before dispatching tier N+1.
+Within each tier, techniques run in parallel (no intra-tier dependencies). The orchestrator waits for all subagents in tier N to complete (or timeout) before dispatching tier N+1.
+
+**Timeout handling**: If a subagent exceeds its tier timeout, mark it as `PARTIAL`, log a Layer 1 flag ("Technique {{NAME}} timed out after {{TIMEOUT}} — partial results may be incomplete"), and proceed with downstream tiers. Do not retry timed-out techniques automatically.
 
 #### Dispatch Sequence
 
@@ -363,3 +371,5 @@ The orchestrator collects summaries from each subagent. Main context accumulates
 - Artifact file path
 
 This replaces full protocol execution in the main window. The report generator reads full artifacts from disk.
+
+**Context window note (comprehensive mode)**: When 10+ techniques are selected, the main context accumulates 10+ compact summaries (~200-400 tokens each, ~5K total). This is well within limits. Subagents each get a fresh context and read artifacts from disk — do NOT restrict which artifacts a subagent can read. Tier 4 techniques (Premortem, Devil's Advocacy, Red Hat) require access to ALL prior `working/` artifacts to function correctly.

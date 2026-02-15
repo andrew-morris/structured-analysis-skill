@@ -1,6 +1,6 @@
 # Protocol: Premortem + Structured Self-Critique
 
-> **Phase**: Challenge & Foresight | **Effort**: 30 min – 2 hours | **Bias Mitigated**: Overconfidence, Blind spots
+> **Phase**: Challenge | **Effort**: 30 min – 2 hours | **Bias Mitigated**: Overconfidence, Blind spots
 > **Output Artifact**: `working/premortem.md`
 > **Library**: 00-prime §4 (Essential 8), 09-core-techniques
 

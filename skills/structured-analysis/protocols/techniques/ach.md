@@ -52,6 +52,7 @@ Summarize: most plausible hypothesis, confidence level, key discriminating evide
 - [ ] Null hypothesis included?
 - [ ] Denial/deception possibility considered?
 - [ ] Zero-diagnostic-value items identified and flagged?
+- [ ] Unitarity: If probability estimates are assigned, do they sum to ~1.0 (MECE)? If not, hypotheses may overlap or a possibility is missing.
 
 ### 6. HANDOFF
 Pass findings to Challenge phase techniques (Premortem, What If?) for stress-testing.

@@ -79,15 +79,17 @@ Check for known cognitive biases in the assessment:
 ### 3h. Quality Score
 Quantitative self-assessment. Compute silently; log results to `meta.md` under the Quality Score section.
 
-| Criterion | Weight | What to Assess |
-|-----------|--------|----------------|
-| Evidence discrimination | 0.30 | What % of evidence items have non-zero diagnostic value in ACH? |
-| Hypothesis separation | 0.25 | How many inconsistencies separate the top-ranked from bottom-ranked hypothesis? |
-| Assumption coverage | 0.20 | What % of linchpin assumptions have direct supporting or challenging evidence? |
-| Cross-technique convergence | 0.15 | Do techniques agree on the primary finding? |
-| Deception resilience | 0.10 | What % of high-diagnostic evidence is rated LOW deception risk? |
+| Criterion | Base Weight | What to Assess | Requires |
+|-----------|-------------|----------------|----------|
+| Evidence discrimination | 0.30 | What % of evidence items have non-zero diagnostic value in ACH? | ACH |
+| Hypothesis separation | 0.25 | How many inconsistencies separate the top-ranked from bottom-ranked hypothesis? | ACH or Inconsistencies |
+| Assumption coverage | 0.20 | What % of linchpin assumptions have direct supporting or challenging evidence? | KAC |
+| Cross-technique convergence | 0.15 | Do techniques agree on the primary finding? | 2+ techniques |
+| Deception resilience | 0.10 | What % of high-diagnostic evidence is rated LOW deception risk? | Deception Detection |
 
-Score each criterion 1–5, compute weighted total. Log to `meta.md`.
+**Weight renormalization**: If a required technique was not run, drop that criterion and redistribute its weight proportionally among the remaining criteria. For example, in Lean mode (no ACH, no Deception Detection), drop Evidence discrimination (0.30) and Deception resilience (0.10), then renormalize: Hypothesis separation becomes 0.25/0.60 ≈ 0.42, Assumption coverage becomes 0.20/0.60 ≈ 0.33, Cross-technique convergence becomes 0.15/0.60 ≈ 0.25. Always ensure weights sum to 1.0.
+
+Score each criterion 1–5, compute weighted total (using renormalized weights). Log to `meta.md`.
 - **Score > 4.0**: PASS — proceed to report finalization.
 - **Score 3.0–4.0**: ADVISORY — note in report, proceed unless human review overrides.
 - **Score < 3.0**: FAIL — flag for mandatory iteration before report finalization. Do not finalize without addressing the lowest-scoring criteria.
@@ -119,6 +121,14 @@ Incorporate user feedback into the final report. If no feedback, proceed.
 
 ### Report (`report.md`)
 Read `templates/report-template.md` and fill every section in document order (disposition first, detail last). The template is the authoritative section ordering — follow it exactly.
+
+**Reusable section components** (in `templates/sections/`):
+- `header.md` — standard artifact header format
+- `confidence-scale.md` — confidence level definitions (High/Moderate/Low with criteria) per ICD 203 Standard 2
+- `judgment-table.md` — key judgments table format with technique/assumption/indicator cross-references
+- `citation-block.md` — standard citation table with method explanations
+
+Use these as reference for consistent formatting across all report sections.
 
 ### Monitoring Plan (`monitoring-plan.md`)
 Use `templates/monitoring-plan-template.md`. For each key judgment:

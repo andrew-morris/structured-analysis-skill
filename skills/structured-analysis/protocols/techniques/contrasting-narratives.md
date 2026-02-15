@@ -1,6 +1,6 @@
 # Protocol: Contrasting Narratives
 
-> **Phase**: Challenge & Foresight | **Effort**: Hours | **Bias Mitigated**: Narrative bias, Confirmation bias, Manipulation susceptibility
+> **Phase**: Foresight | **Effort**: Hours | **Bias Mitigated**: Narrative bias, Confirmation bias, Manipulation susceptibility
 > **Output Artifact**: `working/narratives.md`
 > **Library**: 00-prime §4 (Extended: Frontier), 04-agile-rigor-update
 
@@ -19,7 +19,7 @@ Analyze the STRUCTURE of competing stories, not just their claims. Optimized for
 ### 1. SETUP
 - Read problem context, available evidence, and any identified adversarial narratives from prior technique outputs
 - Identify the primary narrative (the prevailing explanation) and at least one competing narrative
-- Gather evidence from `working/evidence-registry.md`
+- Gather evidence from `evidence-registry.md`
 
 ### 2. PRIME
 State: "I will now analyze the structure of competing narratives — not just what they claim, but how they are built — to find where they break against evidence."

@@ -37,7 +37,7 @@ If not, create it with the Problem Restatement template.
 The selected working framing.
 
 ### 6. HANDOFF
-Pass to KAC Quick or next lean technique.
+Pass to KAC (abbreviated in lean mode) or next lean technique.
 
 ---
 

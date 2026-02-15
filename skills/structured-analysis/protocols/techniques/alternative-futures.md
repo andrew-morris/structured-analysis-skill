@@ -64,6 +64,7 @@ Pass signposts to Monitoring Plan generation. Pass strategic implications to rep
 ---
 
 ## Watch-Outs
+- **Unitarity check**: If assigning probability estimates to futures, they must sum to ~1.0 (MECE). If they don't, either futures overlap (not mutually exclusive) or a plausible future is missing (not collectively exhaustive). Adjust the matrix before proceeding.
 - **Designating a "most likely" future**: Resist the urge. The purpose is to explore the space, not collapse it. If pressed, you may note which future current evidence favors, but frame it as "current trajectory" not "prediction."
 - **Aspirational or worst-case bias**: Futures should be plausible, not wishful or catastrophic. Avoid making one quadrant the "good" future and another the "bad" future — each should have mixed implications.
 - **Axis selection is critical**: Poor axis selection produces redundant or implausible futures. Both axes must be genuinely uncertain AND high-impact. If one axis is trending clearly, it's a driver, not an uncertainty.

@@ -1,6 +1,6 @@
 # Protocol: What If? Analysis
 
-> **Phase**: Challenge & Foresight | **Effort**: Hours | **Bias Mitigated**: Status quo bias, Failure of imagination
+> **Phase**: Challenge | **Effort**: Hours | **Bias Mitigated**: Status quo bias, Failure of imagination
 > **Output Artifact**: `working/what-if.md`
 > **Library**: 00-prime §4 (Essential 8), 01-tradecraft-primer, 09-core-techniques
 
@@ -17,7 +17,7 @@ Assume a high-impact event has already occurred and work backward to explain how
 ### 1. SETUP
 - Read current analytical findings from prior technique outputs
 - Identify the prevailing analytic line — the consensus view of what will or will not happen
-- Gather relevant evidence from `working/evidence-registry.md`
+- Gather relevant evidence from `evidence-registry.md`
 
 ### 2. PRIME
 State: "I will now assume a high-impact event has occurred and explain how it could happen — working backward from the event to the present."

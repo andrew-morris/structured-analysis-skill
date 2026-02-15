@@ -174,7 +174,7 @@ All tiers combine into a unified evidence registry. Use `--no-osint` to skip web
 
 | Flag | Effect |
 |------|--------|
-| `--lean` | Use only Problem Restatement + KAC Quick + Inconsistencies Finder |
+| `--lean` | Use only Problem Restatement + KAC (abbreviated) + Inconsistencies Finder |
 | `--comprehensive` | Full 14-question rubric, no technique cap, unlocks adversarial + deception checks |
 | `--no-osint` | Disable web research — use only conversation context and local files |
 | `--iterate <id>` | Re-run with artifact versioning and evidence delta tracking |

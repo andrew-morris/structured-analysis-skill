@@ -2,7 +2,7 @@
 
 > **Phase**: Decision Support | **Effort**: 30-60 minutes | **Bias Mitigated**: Threat fixation (negativity bias)
 > **Output Artifact**: `working/opportunities.md`
-> **Library**: 00-prime §4 (Extended: Frontier), 00-prime §5 (12-Question Rubric), 04-agile-rigor-update
+> **Library**: 00-prime §4 (Extended: Frontier), 00-prime §5 (14-Question Rubric), 04-agile-rigor-update
 
 ---
 

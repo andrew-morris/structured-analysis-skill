@@ -1,6 +1,6 @@
 # Protocol: Counterfactual Reasoning
 
-> **Phase**: Challenge & Foresight | **Effort**: Hours | **Bias Mitigated**: Confirmation bias, Historical inevitability narratives
+> **Phase**: Foresight | **Effort**: Hours | **Bias Mitigated**: Confirmation bias, Historical inevitability narratives
 > **Output Artifact**: `working/counterfactual.md`
 > **Library**: 00-prime §4 (Extended: Frontier), 04-agile-rigor-update
 
@@ -19,7 +19,7 @@ Look at "what might have been" to better understand "what is." By positing the s
 ### 1. SETUP
 - Read current analytical findings and historical context from prior technique outputs
 - Identify past events or decisions that are critical drivers of the current situation
-- Gather evidence on the causal significance of candidate pivot points from `working/evidence-registry.md`
+- Gather evidence on the causal significance of candidate pivot points from `evidence-registry.md`
 
 ### 2. PRIME
 State: "I will now look at what might have been to understand what is — examining how a small change to a critical past event would have altered the present."
