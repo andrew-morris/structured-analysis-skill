@@ -142,12 +142,12 @@ Questions 1–11 are always active. Questions 12–14 activate in `--comprehensi
 - Overrides all rubric selections — no exceptions
 
 **Default Mode** (no effort flag):
-- Questions 1–11 active; max 5 techniques
-- Prioritization when >5 match:
+- Questions 1–11 active; max 6 techniques
+- Prioritization when >6 match:
   1. Phase alignment (prefer techniques matching Stage Check result)
   2. Diagnostic before Challenge (test assumptions before stress-testing)
   3. Essential 8 before Extended techniques
-- If >5 match, inform user: "I identified [N] matching techniques. Recommending [5 prioritized]. Use --comprehensive to run all."
+- If >6 match, inform user: "I identified [N] matching techniques. Recommending [6 prioritized]. Use --comprehensive to run all."
 
 **Comprehensive Mode** (`--comprehensive`):
 - Full 14-question rubric (adds Q12–14: adversary reaction, deception risk, alternative futures)
