@@ -222,7 +222,18 @@ Execute the complete iteration workflow:
 4. **Archive ALL working artifacts** — iteration-handler Step 2
 5. **Re-run all techniques** — use the same technique set from `meta.md`, iteration-handler Step 4, dispatched via the Technique Execution Contract (subagent dispatch for 2+ techniques)
 6. **Cross-iteration synthesis** — iteration-handler Step 5, comparing new vs. prior findings
-7. **Regenerate report** — include "Revision History" section from `templates/report-template.md`
+7. **Regenerate report** — dispatch report synthesis subagent per `protocols/report-generator.md` Phase A with iteration context. The subagent prompt includes:
+   ```
+   ## Iteration Context
+   This is iteration {{N}}. Read working/iteration-context.md for the delta summary.
+
+   Additional instructions:
+   - Populate the Revision History section in the report template
+   - For each key judgment, note whether it changed from prior iteration and why
+   - Reference prior findings using [PRIOR-v{{N}}: technique_name] citation format
+   - Read the prior report at report.v{{PRIOR}}.md for comparison
+   ```
+   Then execute Phase B (human review gate) in main context.
 8. **Update monitoring plan** — refresh indicators based on new findings
 9. **Write iteration metadata** — iteration-handler Step 6
 10. **Update meta.md** — iteration-handler Step 7
@@ -238,7 +249,7 @@ Execute a targeted re-run of specific technique(s):
 4. **Archive only the specified technique's artifact(s)** — iteration-handler Step 2 (scoped)
 5. **Re-run the specified technique(s)** — iteration-handler Step 4, dispatched via the Technique Execution Contract
 6. **Cross-iteration synthesis** — compare new vs. prior findings for the re-run technique(s) only
-7. **Write iteration findings summary** — in iteration metadata, NOT a full report regeneration (unless explicitly requested by the analyst)
+7. **Write iteration findings summary** — write findings to iteration metadata. If the analyst explicitly requests report regeneration, dispatch report synthesis subagent with iteration context (same as full iteration Step 7). Otherwise, skip report regeneration.
 8. **Update meta.md** — iteration-handler Step 7
 9. **Present delta summary** — show what changed for the re-run technique(s)
 

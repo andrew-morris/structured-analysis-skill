@@ -39,6 +39,14 @@ For each technique artifact that will be re-run:
 
 **Important**: Only archive artifacts for techniques that are being re-run. In a scoped iteration, unchanged technique artifacts remain at their canonical paths untouched.
 
+### Archive Report and Monitoring Plan
+
+Before report regeneration:
+1. If `report.md` exists: rename to `report.v{{PRIOR_VERSION}}.md`
+2. If `monitoring-plan.md` exists: rename to `monitoring-plan.v{{PRIOR_VERSION}}.md`
+
+These are archived alongside technique artifacts so the report synthesis subagent can reference the prior report for comparison.
+
 ---
 
 ## Step 3 — Evidence Delta
@@ -103,6 +111,45 @@ After all re-run techniques complete:
 
 3. For **full iterations**: regenerate the report with a "Revision History" section
 4. For **scoped iterations**: write a findings summary in the iteration metadata (do NOT regenerate the full report unless explicitly requested)
+
+---
+
+## Step 5a — Write Iteration Context for Report Generator
+
+After cross-iteration synthesis, write `analyses/{{ANALYSIS_ID}}/working/iteration-context.md`:
+
+```markdown
+# Iteration Context
+
+- **Iteration**: {{CURRENT_ITER}}
+- **Trigger**: {{TRIGGER_DETAIL}}
+- **Scope**: {{FULL_OR_SCOPED}} — techniques: {{TECHNIQUE_LIST}}
+- **Prior report**: report.v{{PRIOR_VERSION}}.md
+
+## Delta Summary
+
+### Judgment Revisions
+| Judgment | Prior (v{{PRIOR}}) | Current (v{{CURRENT}}) | Driver |
+|----------|-------------------|----------------------|--------|
+{{JUDGMENT_REVISION_ROWS}}
+
+### Findings That Strengthened
+{{STRENGTHENED_LIST}}
+
+### Findings That Weakened
+{{WEAKENED_LIST}}
+
+### New Findings
+{{NEW_FINDINGS_LIST}}
+
+### Invalidated Findings
+{{INVALIDATED_LIST}}
+
+### Confidence Shifts
+{{CONFIDENCE_SHIFT_NARRATIVE}}
+```
+
+This file is consumed by the report synthesis subagent (Phase A) to populate the Revision History section.
 
 ---
 
