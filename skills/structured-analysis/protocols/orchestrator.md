@@ -319,6 +319,7 @@ Within each tier, techniques run in parallel (no intra-tier dependencies). The o
    f. If any subagent returns `FAILED`: log the error, skip that technique, add a Layer 1 flag
    g. If any subagent returns `PARTIAL`: log warnings, accept partial results, add a Layer 1 flag
    h. Update `meta.md` with each technique's status and dispatch tier
+   **i. Run Tier Gate Protocol** (see above): scan accumulated findings for signals, inject corrective context into next tier's subagent prompts if needed
 5. **Accumulate findings**: After all tiers complete, the main context holds only the compact summaries — not full technique work
 
 #### Subagent Prompt Template
@@ -384,3 +385,41 @@ The orchestrator collects summaries from each subagent. Main context accumulates
 This replaces full protocol execution in the main window. The report synthesis subagent (Phase A) reads full artifacts from disk.
 
 **Context window note (comprehensive mode)**: When 10+ techniques are selected, the main context accumulates 10+ compact summaries (~200-400 tokens each, ~5K total). This is well within limits. Subagents each get a fresh context and read artifacts from disk — do NOT restrict which artifacts a subagent can read. Tier 4 techniques (Premortem, Devil's Advocacy, Red Hat) require access to ALL prior `working/` artifacts to function correctly.
+
+#### Tier Gate Protocol
+
+After collecting all subagent summaries for tier N and before dispatching tier N+1, run this lightweight check in main context. The gate reads ONLY the compact findings summaries already accumulated (~200-400 tokens each) — no disk reads.
+
+**Check 1: MISSING HYPOTHESIS**
+- Scan findings for phrases like "gap in hypothesis coverage," "missing hypothesis," "additional hypothesis needed," or "not captured in current framework"
+- Action: If a downstream technique can address it (What-If for scenarios, Contrasting Narratives for competing explanations, ACH re-run for matrix expansion), add to that technique's SETUP context: `"Prior technique {{NAME}} identified missing hypothesis: {{DESCRIPTION}}. Incorporate this into your analysis."`
+
+**Check 2: EVIDENCE GAP**
+- Scan findings for phrases like "insufficient evidence on," "no evidence available for," "evidence gap," or "unable to assess due to missing data"
+- Action: If OSINT is enabled, spawn a targeted evidence collection mini-round before the next tier:
+  - Generate 1-2 focused search themes addressing the gap
+  - Dispatch as foreground Task subagent(s) using the Step 3a prompt template from `protocols/evidence-collector.md`
+  - Run Step 3b extraction on new raw files
+  - Update evidence-registry.md with new items
+  - Add to downstream techniques' SETUP context: `"New evidence E{{START}}-E{{END}} collected targeting: {{GAP_DESCRIPTION}}"`
+
+**Check 3: CONTRADICTION**
+- Scan findings from the same tier for conflicting conclusions (e.g., Technique A finds X likely while Technique B finds X unlikely)
+- Action: Add to downstream techniques' SETUP context: `"Tier {{N}} produced conflicting findings: {{TECHNIQUE_A}} found {{X}} while {{TECHNIQUE_B}} found {{Y}}. Your analysis should address this tension."`
+
+**Check 4: CONFIDENCE COLLAPSE**
+- Scan findings for a technique where ALL findings are Low confidence
+- Action: Log a Layer 1 flag in meta.md. Add warning to downstream techniques' SETUP context: `"{{TECHNIQUE}} returned all findings at Low confidence. Treat its outputs as provisional."`
+
+**Gate rules:**
+- Gates are **additive only** — they inject SETUP context or add mini-collection rounds. They never remove or skip already-selected techniques.
+- A gate can add at most **1 targeted evidence collection round** (1-2 themes) per tier transition.
+- If no checks trigger, the gate passes silently (no logging, no output).
+- All gate actions are logged in `meta.md` under a new **Tier Gate Actions** subsection of Self-Correction.
+- Gate processing should take <30 seconds — it reads only compact summaries already in main context.
+
+**Meta.md logging format** (under Self-Correction > Tier Gate Actions):
+
+| Tier | Check | Signal | Action Taken |
+|------|-------|--------|-------------|
+| {{TIER_N}} | {{CHECK_NAME}} | {{SIGNAL_PHRASE}} | {{ACTION_DESCRIPTION}} |
