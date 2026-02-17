@@ -31,6 +31,12 @@ Both trigger types follow the same Steps 1–7 workflow. The only differences fo
      - Set Trigger Type to `BASELINE` and Detail to `"Retroactive snapshot of original analysis"` (or `"Retroactive snapshot before auto-remediation"` if trigger is auto-remediation)
    - Set `{{CURRENT_ITER}}` = 2
 3. If **present**: count existing `iteration-*-meta.md` files → set `{{CURRENT_ITER}}` = count + 1
+4. Read `analyses/{{ANALYSIS_ID}}/next-steps.md` (if it exists):
+   - Parse the Iteration Items table
+   - Filter to `OPEN` items only
+   - Extract technique names and evidence focus descriptions
+   - These become the iteration scope (overrides meta.md technique list when next-steps.md exists)
+   - If `next-steps.md` does not exist (legacy analysis created before this feature): fall back to reading meta.md for technique list (existing behavior)
 
 ---
 
@@ -160,6 +166,34 @@ After cross-iteration synthesis, write `analyses/{{ANALYSIS_ID}}/working/iterati
 ```
 
 This file is consumed by the report synthesis subagent (Phase A) to populate the Revision History section.
+
+---
+
+## Step 5b — Update Next Steps Ledger
+
+After cross-iteration synthesis, update `analyses/{{ANALYSIS_ID}}/next-steps.md`:
+
+1. **Resolve completed items**: For each technique that was re-run in this iteration:
+   - Find matching `OPEN` items in the Iteration Items table
+   - Update Status from `OPEN` to `RESOLVED — Iter {{CURRENT_ITER}}`
+   - In the Detail section, change `[OPEN]` to `[RESOLVED — Iter {{CURRENT_ITER}}]`
+   - Append a resolution note:
+     ```
+     - **Resolved**: Iteration {{CURRENT_ITER}} ({{DATE}}). {{NEW_EVIDENCE_COUNT}} new evidence items ({{ID_RANGE}}). {{ONE_LINE_SUMMARY_FROM_DELTA}}.
+     ```
+
+2. **Append new flags**: If the iteration's Layer 2 self-critique (run during report regeneration) produces new actionable flags:
+   - Append new rows to the Iteration Items table with sequential numbering continuing from the last item
+   - Add corresponding Detail sections at the bottom
+   - Set Status to `OPEN` for all new items
+
+3. **Update summary counts**: Recalculate TOTAL, REMEDIATED, RESOLVED, and OPEN counts in the Summary line
+
+4. **Update suggested command**: Regenerate the `/analyze --iterate` command with only the techniques from remaining `OPEN` items. If no `OPEN` items remain, replace with: `"No open iteration items. All identified gaps have been addressed."`
+
+5. **Update header**: Set `Iteration: {{CURRENT_ITER}}` and update Quality Score if a new score was produced
+
+**Legacy fallback**: If `next-steps.md` does not exist (analysis predates this feature), skip this step. The iteration's Phase A report synthesis will create `next-steps.md` as part of its normal output, bootstrapping the ledger for future iterations.
 
 ---
 
