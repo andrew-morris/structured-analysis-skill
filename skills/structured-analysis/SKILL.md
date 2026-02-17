@@ -71,7 +71,7 @@ If no conversation context exists and no arguments were provided, proceed direct
    - **1 technique** (Direct mode): Execute in-context — read protocol, read template, execute SETUP → PRIME → EXECUTE → ARTIFACT → FINDINGS → HANDOFF, write artifact to `analyses/<id>/working/`
    - **2+ techniques**: Dispatch to background subagents in dependency-aware tiers — each subagent reads protocol/template, executes the technique, writes the artifact, and returns only a compact findings summary. Main context accumulates summaries and file paths, not full technique work.
 5. For evidence gathering: read and execute `protocols/evidence-collector.md`
-6. For report synthesis: read and execute `protocols/report-generator.md`
+6. For report synthesis: dispatch per `protocols/report-generator.md` Phase A/B architecture
 
 ## Self-Correction (3 Layers)
 

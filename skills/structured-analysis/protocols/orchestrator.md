@@ -181,7 +181,7 @@ Execute in order, each phase building on the previous:
 4. **Evidence Gate**: Execute the Evidence Sufficiency Gate (defined in `protocols/evidence-collector.md`). If hard checks fail, retry or halt. If soft checks fail, log flags and proceed.
 5. **Core Analysis**: Use selection logic (Steps 2-3 above) to pick technique(s), then execute via the Technique Execution Contract (in-context for 1 technique, subagent dispatch for 2+)
 6. **Stress Test**: Premortem + What If?
-7. **Report**: Read and execute `protocols/report-generator.md`
+7. **Report**: Dispatch report synthesis subagent per `protocols/report-generator.md` Phase A. Then execute Phase B (human review gate) in main context.
 
 ---
 
@@ -370,6 +370,6 @@ The orchestrator collects summaries from each subagent. Main context accumulates
 - Handoff notes (1-2 sentences)
 - Artifact file path
 
-This replaces full protocol execution in the main window. The report generator reads full artifacts from disk.
+This replaces full protocol execution in the main window. The report synthesis subagent (Phase A) reads full artifacts from disk.
 
 **Context window note (comprehensive mode)**: When 10+ techniques are selected, the main context accumulates 10+ compact summaries (~200-400 tokens each, ~5K total). This is well within limits. Subagents each get a fresh context and read artifacts from disk — do NOT restrict which artifacts a subagent can read. Tier 4 techniques (Premortem, Devil's Advocacy, Red Hat) require access to ALL prior `working/` artifacts to function correctly.
