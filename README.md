@@ -280,6 +280,7 @@ The iteration protocol:
 - **Accumulates evidence** — new items append with an `Iter` column tracking provenance
 - **Compares findings** — cross-iteration synthesis tracks judgment revisions and confidence shifts
 - **Records metadata** — each iteration logs its trigger, scope, and changes
+- **Tracks gaps in `next-steps.md`** — a standalone ledger at the analysis root tracking all identified gaps and their resolution status (OPEN, REMEDIATED, RESOLVED, DEFERRED) across iterations. The `--iterate` handler reads this file to determine which techniques to re-run and what evidence to collect.
 
 First-run analyses are unaffected. Iteration tracking activates only on `--iterate`.
 
@@ -416,6 +417,7 @@ structured-analysis-skill/
 │       ├── review-summary-template.md  # Phase A → Phase B handoff summary
 │       ├── meta-template.md
 │       ├── iteration-meta-template.md # Per-iteration metadata
+│       ├── next-steps-template.md    # Iteration suggestions ledger
 │       ├── techniques/              # 18 technique artifact templates
 │       └── sections/                # Reusable report components
 ├── docs/
