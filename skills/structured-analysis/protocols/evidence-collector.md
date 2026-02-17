@@ -76,9 +76,17 @@ Log the full theme list (core + adaptive) to `meta.md` under Evidence Collection
 
 #### Step 3a — Raw Collection (Foreground Task Subagents)
 
-Spawn foreground Task subagents sequentially (one per search theme). Each subagent inherits MCP tools from the parent and can use Firecrawl or WebSearch/WebFetch.
+Spawn foreground Task subagents in parallel batches. Each subagent inherits MCP tools from the parent and can use Firecrawl or WebSearch/WebFetch.
 
-**Dispatch order**: Core themes first (1-3), then adaptive themes in priority order (4+). If time or tool constraints force early termination, the highest-priority themes will already be collected.
+**Prerequisite**: Parallel dispatch requires search/scrape tools in the user's allow list (see Tool Permissions below). If tools require per-call approval, fall back to sequential dispatch (one theme at a time) to avoid permission prompt flooding.
+
+**Batch dispatch**:
+- **Batch 1 (Core themes 1-3)**: Launch all three core theme subagents simultaneously using the Task tool. Wait for all three to complete before proceeding.
+- **Batch 2 (Adaptive themes 4+)**: Launch all adaptive theme subagents simultaneously. Wait for all to complete.
+
+Core themes run first so that if Batch 2 encounters errors (rate limits, tool failures), the foundational evidence is already collected.
+
+**Error handling per batch**: Each subagent writes to its own file independently. If any subagent in a batch fails, the others still succeed. Failed themes are logged and can be retried in the sufficiency gate retry cycle.
 
 For each theme, invoke the Task tool with `subagent_type: "general-purpose"` and the following prompt template (substitute `{{THEME_NAME}}`, `{{THEME_NUMBER}}`, `{{SEARCH_INSTRUCTIONS}}`, and `{{PROBLEM_SUMMARY}}`):
 
