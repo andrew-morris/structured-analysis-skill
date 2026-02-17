@@ -87,7 +87,7 @@ If no conversation context exists and no arguments were provided, proceed direct
   - 3h. Quality score (quantitative 1-5 with pass/fail threshold)
 - **Layer 3** (before finalization): Human review gate — present summary (including quality score), incorporate feedback
 - **Auto-Remediation Gate** (between Phase A and Phase B): HIGH-severity Layer 2 flags (evidence imbalance >2:1, unstated critical premises, strong counter-arguments, sycophancy/anchoring bias, quality score < 3.0) trigger automatic remediation — the orchestrator invokes the iteration handler to collect targeted evidence, re-run flagged techniques (max 3), and regenerate the report before the user sees it. Capped at 1 cycle. Zero overhead when no HIGH flags exist.
-- **Critique-to-Iteration Bridge** (after results): Remaining MEDIUM/LOW flags from Layer 1 and Layer 2 are mapped to specific technique re-runs and evidence collection focuses, presented as ready-to-run `/analyze --iterate` commands. Only fires when actionable flags exist beyond what auto-remediation already addressed.
+- **Critique-to-Iteration Bridge** (after results): Remaining MEDIUM/LOW flags from Layer 1 and Layer 2 are mapped to specific technique re-runs and evidence collection focuses, presented as ready-to-run `/analyze --iterate` commands. Only fires when actionable flags exist beyond what auto-remediation already addressed. All flags and their statuses are written to `next-steps.md` in the analysis root — a standalone ledger tracking OPEN, REMEDIATED, RESOLVED, and DEFERRED items across iterations. The `--iterate` handler reads this file as its primary input.
 
 ## Citation Requirement
 
