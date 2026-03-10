@@ -211,3 +211,6 @@ analyses/
 
 # Git worktrees
 .worktrees/
+
+# claude-mem auto-generated context files
+**/CLAUDE.md
