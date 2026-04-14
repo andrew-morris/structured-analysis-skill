@@ -2,11 +2,10 @@
   "name": "structured-analysis",
   "version": "0.1.0",
   "description": "AI-augmented Structured Analytic Techniques from US Intelligence Community doctrine — 18 techniques across 6 phases with automated evidence gathering, self-correction, and citation enforcement",
-  "author": "blevene",
+  "author": {
+    "name": "blevene"
+  },
   "license": "Apache-2.0",
   "homepage": "https://github.com/blevene/structured-analysis-skill",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/blevene/structured-analysis-skill.git"
-  }
+  "repository": "https://github.com/blevene/structured-analysis-skill.git"
 }
