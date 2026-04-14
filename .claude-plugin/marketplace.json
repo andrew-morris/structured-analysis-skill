@@ -12,7 +12,7 @@
       "description": "18 CIA/IC analytic techniques with OSINT evidence gathering, three-layer self-correction, and mandatory citation enforcement. Run /analyze to start.",
       "source": {
         "source": "github",
-        "repo": "blevene/structured-analysis-skill"
+        "repo": "andrew-morris/structured-analysis-skill"
       }
     }
   ]
